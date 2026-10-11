@@ -4,5 +4,8 @@
 import { pathToFileURL } from "node:url";
 
 const mod = await import(pathToFileURL("dist/handler.mjs").href);
-if (typeof mod.handler !== "function") throw new Error("dist/handler.mjs does not export handler()");
+if (typeof mod.handler !== "function") {
+  throw new Error("dist/handler.mjs does not export handler()");
+}
+
 console.log("Bundle loads as ESM and exports handler()");
