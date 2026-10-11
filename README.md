@@ -29,6 +29,7 @@ Requires Node 22+.
 
 ## Deploy (AWS SAM)
 Requires the AWS CLI and SAM CLI, with credentials for your account (e.g. `export AWS_PROFILE=...`).
+To pin a profile for just this project's npm scripts, set `STARTUP_RADAR_AWS_PROFILE` instead; it takes precedence over `AWS_PROFILE`.
 
 1. Verify your email in SES (in sandbox mode, verify both sender and recipient). Sending *from* a
    Gmail address works but may land in spam; a domain you own with Easy DKIM is more reliable.
