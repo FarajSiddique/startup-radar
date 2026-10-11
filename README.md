@@ -5,8 +5,8 @@ A daily Lambda that pulls new launches (Product Hunt, Show HN, App Store top fre
 
 ## Run it locally first
     npm install
-    export ANTHROPIC_API_KEY=...  PRODUCT_HUNT_TOKEN=...   # PH token optional
-    npm run local            # writes preview.html, sends nothing
+    cp .env.example .env     # then fill in ANTHROPIC_API_KEY (PRODUCT_HUNT_TOKEN optional)
+    npm run local            # loads .env, writes preview.html, sends nothing
     npm run local -- --send  # also emails it (needs DIGEST_TO / DIGEST_FROM + AWS creds)
 
 ## Deploy
