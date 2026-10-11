@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "login": "env ${STARTUP_RADAR_AWS_PROFILE:+AWS_PROFILE=$STARTUP_RADAR_AWS_PROFILE} aws sso login",
     "build": "esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/handler.mjs --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\"",
     "deploy": "npm run build && env ${STARTUP_RADAR_AWS_PROFILE:+AWS_PROFILE=$STARTUP_RADAR_AWS_PROFILE} sam deploy",
     "invoke": "env ${STARTUP_RADAR_AWS_PROFILE:+AWS_PROFILE=$STARTUP_RADAR_AWS_PROFILE} sam remote invoke RadarFunction --stack-name startup-radar",
