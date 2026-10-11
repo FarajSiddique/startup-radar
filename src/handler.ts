@@ -1,18 +1,19 @@
-import { productHunt, showHN, appStoreTop, badReviews, safe } from "./sources.js";
+import { productHunt, showHN, badReviews, safe } from "./sources.js";
+import { unhappyApps } from "./appstore.js";
 import { buildDigest } from "./summarize.js";
 import { sendDigest } from "./email.js";
 
 export async function run({ send = true } = {}) {
-  const [ph, hn, top, reviews] = await Promise.all([
+  const [ph, hn, apps, reviews] = await Promise.all([
     safe("productHunt", productHunt),
     safe("showHN", showHN),
-    safe("appStoreTop", appStoreTop),
+    safe("appStoreRadar", () => unhappyApps()),
     safe("badReviews", badReviews),
   ]);
-  const launches = [...ph, ...hn, ...top];
-  console.log(`launches=${launches.length} reviews=${reviews.length}`);
+  const launches = [...ph, ...hn];
+  console.log(`productHunt=${ph.length} showHN=${hn.length} unhappyApps=${apps.length} watchlistReviews=${reviews.length}`);
 
-  const html = await buildDigest(launches, reviews);
+  const html = await buildDigest(launches, apps, reviews);
   if (send) await sendDigest(html);
   return html;
 }

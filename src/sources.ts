@@ -1,4 +1,5 @@
 import { CONFIG, WATCHLIST } from "./config.js";
+import { fetchReviews } from "./appstore.js";
 
 export type Launch = { source: string; name: string; tagline: string; url: string; score?: number };
 export type Review = { app: string; rating: number; title: string; body: string };
@@ -39,34 +40,12 @@ export async function showHN(): Promise<Launch[]> {
     }));
 }
 
-// App Store top free apps (Apple's public marketing RSS)
-export async function appStoreTop(): Promise<Launch[]> {
-  const res = await fetch(
-    `https://rss.marketingtools.apple.com/api/v2/${CONFIG.country}/apps/top-free/${CONFIG.topChartSize}/apps.json`
-  );
-  const json: any = await res.json();
-  return json.feed.results.map((a: any, i: number) => ({
-    source: "App Store Top Free", name: a.name, tagline: a.genres?.map((g: any) => g.name).join(", ") ?? "",
-    url: a.url, score: i + 1, // rank
-  }));
-}
-
-// 1–2 star reviews for each watchlisted app (Apple's customer-review RSS)
+// 1–2 star reviews for each manually watchlisted app
 export async function badReviews(): Promise<Review[]> {
   const all = await Promise.all(
-    WATCHLIST.map(async (app) => {
-      const res = await fetch(
-        `https://itunes.apple.com/${CONFIG.country}/rss/customerreviews/page=1/id=${app.id}/sortby=mostrecent/json`
-      );
-      const json: any = await res.json();
-      const entries: any[] = json.feed?.entry ?? [];
-      return entries
-        .map((e) => ({
-          app: app.name, rating: Number(e["im:rating"]?.label),
-          title: e.title?.label ?? "", body: e.content?.label ?? "",
-        }))
-        .filter((r) => r.rating > 0 && r.rating <= 2);
-    })
+    WATCHLIST.map(async (app) =>
+      (await fetchReviews(app.id)).filter((r) => r.rating <= 2).map((r) => ({ app: app.name, ...r }))
+    )
   );
   return all.flat();
 }
