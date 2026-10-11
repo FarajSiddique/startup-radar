@@ -1,5 +1,7 @@
 # Startup Radar
 
+[![CI](https://github.com/FarajSiddique/startup-radar/actions/workflows/ci.yml/badge.svg)](https://github.com/FarajSiddique/startup-radar/actions/workflows/ci.yml)
+
 A daily Lambda that pulls new launches (Product Hunt, Show HN), scans the App Store for apps with
 big demand but unhappy users, plus 1–2 star reviews for apps on your watchlist, has Claude turn it
 into a digest, and emails it via SES.
@@ -17,14 +19,29 @@ written reviews). Claude splits the shortlist into contestable apps and captive 
 Tune thresholds in `CONFIG.radar`, and add app ids to `IGNORE` to stop seeing them.
 
 ## Run it locally first
+Requires Node 22+.
+
     npm install
     cp .env.example .env     # then fill in ANTHROPIC_API_KEY (PRODUCT_HUNT_TOKEN optional)
     npm run local            # loads .env, writes preview.html, sends nothing
     npm run local -- --send  # also emails it (needs DIGEST_TO / DIGEST_FROM + AWS creds)
 
-## Deploy
-1. Verify your email in SES (in sandbox mode, verify both sender and recipient).
-2. `npm run build && sam deploy --guided`
-3. Add app ids to `src/config.ts` WATCHLIST as you find underperformers.
+## Deploy (AWS SAM)
+Requires the AWS CLI and SAM CLI, with credentials for your account (e.g. `export AWS_PROFILE=...`).
+
+1. Verify your email in SES (in sandbox mode, verify both sender and recipient). Sending *from* a
+   Gmail address works but may land in spam; a domain you own with Easy DKIM is more reliable.
+2. First deploy: `npm run build && sam deploy --guided` (saves your answers to `samconfig.toml`, which is gitignored).
+3. After that:
+
+       npm run deploy   # build + sam deploy
+       npm run invoke   # run the deployed Lambda once (sends a real email)
+
+It runs daily at 7:00 AM America/New_York (see `template.yaml`). Add app ids to `WATCHLIST` in
+`src/config.ts` to track specific apps' bad reviews.
 
 Tip: for production, move the API keys to Secrets Manager or SSM instead of env params.
+
+## CI
+GitHub Actions runs typecheck, build, and `npm run check:bundle` (imports the bundle as an ES module the
+way Lambda does) on every push and PR. Deploys are manual.

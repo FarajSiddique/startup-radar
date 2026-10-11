@@ -9,7 +9,8 @@
     "invoke": "sam remote invoke RadarFunction --stack-name startup-radar",
     "local": "tsx --env-file=.env src/local.ts",
     "scan": "tsx src/scan.ts",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "check:bundle": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
