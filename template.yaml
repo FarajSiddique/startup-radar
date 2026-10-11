@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Startup Radar — daily launch + review digest
+
+Parameters:
+  DigestTo: { Type: String }
+  DigestFrom: { Type: String }
+  AnthropicApiKey: { Type: String, NoEcho: true }
+  ProductHuntToken: { Type: String, NoEcho: true, Default: "" }
+
+Resources:
+  RadarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: handler.handler
+      Runtime: nodejs20.x
+      Timeout: 120
+      MemorySize: 512
+      Environment:
+        Variables:
+          DIGEST_TO: !Ref DigestTo
+          DIGEST_FROM: !Ref DigestFrom
+          ANTHROPIC_API_KEY: !Ref AnthropicApiKey
+          PRODUCT_HUNT_TOKEN: !Ref ProductHuntToken
+      Policies:
+        - SESCrudPolicy: { IdentityName: !Ref DigestFrom }
+      Events:
+        Daily:
+          Type: ScheduleV2
+          Properties:
+            # 7:00 AM Eastern, every day
+            ScheduleExpression: "cron(0 7 * * ? *)"
+            ScheduleExpressionTimezone: America/New_York

@@ -1,0 +1,20 @@
+{
+  "name": "startup-radar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/handler.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/handler.mjs",
+    "local": "tsx src/local.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.0",
+    "@aws-sdk/client-sesv2": "^3.600.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0",
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.12.0"
+  }
+}
