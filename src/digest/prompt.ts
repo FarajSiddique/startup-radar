@@ -1,11 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { CONFIG } from "./config.js";
-import type { Launch, Review } from "./sources.js";
-import type { UnhappyApp } from "./appstore.js";
+import type { DigestInputs } from "../types.js";
 
-const client = new Anthropic(); // reads ANTHROPIC_API_KEY
-
-const SYSTEM = `You write a daily startup-radar email for a full-stack engineer who builds mobile apps
+export const SYSTEM_PROMPT = `You write a daily startup-radar email for a full-stack engineer who builds mobile apps
 and is hunting for app ideas to build or compete on. Be sharp and opinionated, skip filler.
 Return ONLY an HTML fragment (no <html>/<body>), using simple inline styles that render in Gmail.
 
@@ -27,20 +22,11 @@ Sections, in order:
 5. "Idea of the day" — one concrete mobile app concept that falls out of today's data (favor section 3 when it
    has a strong contestable target): who it's for, the core loop, and why now. Then one question to pressure-test it.`;
 
-export async function buildDigest(launches: Launch[], apps: UnhappyApp[], reviews: Review[]): Promise<string> {
-  const msg = await client.beta.messages.create({
-    model: CONFIG.model,
-    max_tokens: 16000, // thinking counts against this, so leave room beyond the ~3k-token digest
-    // On a safety-classifier refusal, the API re-runs the request on a suitable fallback model
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    system: SYSTEM,
-    messages: [{
-      role: "user",
-      content: `LAUNCHES (JSON):\n${JSON.stringify(launches)}\n\nUNHAPPY APPS (JSON):\n${JSON.stringify(apps)}\n\nBAD REVIEWS (JSON):\n${JSON.stringify(reviews)}`,
-    }],
-  });
-  if (msg.stop_reason === "refusal") throw new Error(`Digest refused: ${msg.stop_details?.category ?? "unknown"}`);
-  if (msg.stop_reason === "max_tokens") console.warn("Digest hit max_tokens; output may be truncated");
-  return msg.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+// The day's raw data as labeled JSON blocks, matching the names the system prompt refers to
+export function buildUserMessage({ launches, apps, reviews }: DigestInputs): string {
+  return [
+    `LAUNCHES (JSON):\n${JSON.stringify(launches)}`,
+    `UNHAPPY APPS (JSON):\n${JSON.stringify(apps)}`,
+    `BAD REVIEWS (JSON):\n${JSON.stringify(reviews)}`,
+  ].join("\n\n");
 }

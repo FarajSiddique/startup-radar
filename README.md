@@ -7,7 +7,7 @@ big demand but unhappy users, plus 1–2 star reviews for apps on your watchlist
 into a digest, and emails it via SES.
 
 ## App Store radar
-Each day it scans 3 of the genres in `src/config.ts` (rotating, so all are covered every ~4 days):
+Each day it scans 3 of the genres in `src/config/genres.ts` (rotating, so all are covered every ~4 days):
 top grossing + top free charts → ratings via Apple's Lookup API → recent written reviews for the
 strongest candidates. Apps score on demand (rating count, extra weight for top grossing) times
 dissatisfaction (low lifetime rating, and recent 1–2★ share above the ~30% that's normal for
@@ -16,7 +16,8 @@ written reviews). Claude splits the shortlist into contestable apps and captive 
     npm run scan             # print today's shortlist, no Claude call
     npm run scan -- --all    # scan every genre
 
-Tune thresholds in `CONFIG.radar`, and add app ids to `IGNORE` to stop seeing them.
+Tune thresholds in `CONFIG.radar` (`src/config/settings.ts`), and add app ids to `IGNORE`
+(`src/config/watchlist.ts`) to stop seeing them.
 
 ## Run it locally first
 Requires Node 22+.
@@ -38,10 +39,25 @@ Requires the AWS CLI and SAM CLI, with credentials for your account (e.g. `expor
        npm run invoke   # run the deployed Lambda once (sends a real email)
 
 It runs daily at 7:00 AM America/New_York (see `template.yaml`). Add app ids to `WATCHLIST` in
-`src/config.ts` to track specific apps' bad reviews.
+`src/config/watchlist.ts` to track specific apps' bad reviews.
 
 Tip: for production, move the API keys to Secrets Manager or SSM instead of env params.
 
+## Project layout
+
+    src/
+      handler.ts           Lambda entry point (bundled to dist/handler.mjs)
+      pipeline.ts          runDigest(): gather sources → Claude → email
+      types.ts             data passed from the sources into the digest
+      config/              settings, App Store genres, watchlist + ignore lists
+      sources/             one file per source: product-hunt, show-hn, watchlist-reviews
+        app-store/         api (Apple endpoints), scoring (pure math), radar (the 4-step scan)
+      digest/              prompt, build (Claude call), send (SES)
+      lib/                 small generic helpers (http, concurrency, array, time)
+      cli/                 local.ts and scan.ts, behind `npm run local` / `npm run scan`
+
+Formatting is Prettier (`npm run format`); CI fails on unformatted code.
+
 ## CI
-GitHub Actions runs typecheck, build, and `npm run check:bundle` (imports the bundle as an ES module the
+GitHub Actions runs a format check, typecheck, build, and `npm run check:bundle` (imports the bundle as an ES module the
 way Lambda does) on every push and PR. Deploys are manual.

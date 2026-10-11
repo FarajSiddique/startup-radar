@@ -7,9 +7,11 @@
     "build": "esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/handler.mjs --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\"",
     "deploy": "npm run build && sam deploy",
     "invoke": "sam remote invoke RadarFunction --stack-name startup-radar",
-    "local": "tsx --env-file=.env src/local.ts",
-    "scan": "tsx src/scan.ts",
+    "local": "tsx --env-file=.env src/cli/local.ts",
+    "scan": "tsx src/cli/scan.ts",
     "typecheck": "tsc",
+    "format": "prettier --write src scripts",
+    "format:check": "prettier --check src scripts",
     "check:bundle": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
@@ -19,6 +21,7 @@
   "devDependencies": {
     "@types/node": "^22.20.5",
     "esbuild": "^0.28.2",
+    "prettier": "^3.9.9",
     "tsx": "^4.15.0",
     "typescript": "^5.4.0"
   }
