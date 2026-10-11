@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/handler.mjs --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\"",
+    "deploy": "npm run build && sam deploy",
+    "invoke": "sam remote invoke RadarFunction --stack-name startup-radar",
     "local": "tsx --env-file=.env src/local.ts",
     "scan": "tsx src/scan.ts",
     "typecheck": "tsc"
