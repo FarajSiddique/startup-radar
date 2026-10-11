@@ -12,6 +12,8 @@ Resources:
   RadarFunction:
     Type: AWS::Serverless::Function
     Properties:
+      # Fixed name so RadarLogGroup below can own /aws/lambda/<name> (with retention)
+      FunctionName: !Sub "${AWS::StackName}-digest"
       CodeUri: dist/
       Handler: handler.handler
       Runtime: nodejs22.x
@@ -23,6 +25,9 @@ Resources:
           DIGEST_FROM: !Ref DigestFrom
           ANTHROPIC_API_KEY: !Ref AnthropicApiKey
           PRODUCT_HUNT_TOKEN: !Ref ProductHuntToken
+      # No automatic retries: a retry re-runs the Claude call and could email the digest twice
+      EventInvokeConfig:
+        MaximumRetryAttempts: 0
       Policies:
         - SESCrudPolicy: { IdentityName: !Ref DigestFrom }
       Events:
@@ -32,3 +37,9 @@ Resources:
             # 7:00 AM Eastern, every day
             ScheduleExpression: "cron(0 7 * * ? *)"
             ScheduleExpressionTimezone: America/New_York
+
+  RadarLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-digest"
+      RetentionInDays: 30
